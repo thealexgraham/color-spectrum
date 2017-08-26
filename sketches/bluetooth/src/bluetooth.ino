@@ -6,7 +6,7 @@
 * This program lets you to control a LED on pin 13 of arduino using a bluetooth module
 */
 #include <SoftwareSerial.h>
-#include "OSCBundle.h"
+#include "OSC/OSCBundle.h"
 
 #define GREENPIN 11
 #define REDPIN 10

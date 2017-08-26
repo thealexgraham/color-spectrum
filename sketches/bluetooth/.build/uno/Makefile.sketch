@@ -1,0 +1,14 @@
+
+
+
+
+
+.build/uno/src/bluetooth.cpp : src/bluetooth.ino
+	@mkdir -p .build/uno/src
+	@echo [93msrc/bluetooth.ino[0m
+	@/usr/local/Cellar/ino/0.3.6/libexec/bin/ino preproc  -o $@ $^
+
+
+all : .build/uno/src/bluetooth.cpp
+	@true
+
