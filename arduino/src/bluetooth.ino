@@ -11,9 +11,11 @@
 #define REDPIN 10
 #define BLUEPIN 9
 
-#define GREENPIN_2 16
-#define REDPIN_2 15
-#define BLUEPIN_13
+#define GREENPIN_2 6
+#define REDPIN_2 5
+#define BLUEPIN_2 3
+
+#define INPUT_SIZE 255
 char data = 0;            //Variable for storing received data
 
 SoftwareSerial BTSerial(13,12);
@@ -45,21 +47,95 @@ void setup()
     while (BTSerial.available()) {
         Serial.write(BTSerial.read());
     }
-    analogWrite(GREENPIN, 0);
+    //analogWrite(GREENPIN, 0);
 }
 
+char inData[INPUT_SIZE];
+byte idx = 0;
+// 1:g:90&1:r:60
 void loop()
 {
     int b;
-     if(Serial.available() > 0)      // Send data only when you receive data:
-     {
-        data = Serial.read();        //Read the incoming data & store into data
-        handleData(data);
+
+    if(BTSerial.available() > 0)      // Send data only when you receive data:
+    {
+        byte inByte = BTSerial.read();
+        if (inByte == '\n') {
+            inData[idx] = 0;
+            handleCommand(inData);
+            // Reset the array
+            idx = 0;
+            memset(&inData[0], 0, sizeof(inData));
+        } else {
+            inData[idx++] = inByte;
+        }
      }
-     if(BTSerial.available() > 0) {
-        data = BTSerial.read();
-        handleData(data);
-     }
+}
+
+
+void handleCommand(char input[]) {
+
+    // Read each command pair
+    char* command = strtok(input, "&");
+    while (command != '\0')
+    {
+        // Split the command in two values
+        char* separator = strchr(command, ':');
+        if (separator != '\0')
+        {
+            // Actually split the string in 2: replace ':' with 0
+            *separator = '\0';
+            int lane = atoi(command);
+            ++separator;
+            char* next = strchr(separator, ':');
+            *next = '\0';
+            char* color = separator;
+            ++next;
+            int value = atoi(next);
+            char buffer[255];
+            sprintf(buffer,"ID: %d, color: %s, value: %d\n\n", lane, color, value);
+            Serial.print(buffer);
+
+            setColor(lane,color[0],value);
+        }
+        // Find the next command in input string
+        command = strtok('\0', "&");
+    }
+}
+
+void setColor(int lane, char color, int value) {
+    analogWrite(getPin(lane,color), value);
+}
+
+int getPin(int lane, char color) {
+    if (lane == 1) {
+        switch (color) {
+            case 'r':
+                return REDPIN;
+                break;
+            case 'g':
+                return GREENPIN;
+                break;
+            case 'b':
+                return BLUEPIN;
+                break;
+        }
+    } else {
+        switch (color) {
+            case 'r':
+                return REDPIN_2;
+                break;
+            case 'g':
+                return GREENPIN_2;
+                break;
+            case 'b':
+                return BLUEPIN_2;
+                break;
+        }
+    }
+}
+void handleString(String str) {
+    analogWrite(GREENPIN, str.toInt());
 }
 
 void handleData(char data) {
@@ -72,3 +148,9 @@ void handleData(char data) {
     else if(data == '\n')
         Serial.print("Doing it");
 }
+
+
+//test = Serial.readStringUntil('\n');
+//Serial.print(test);
+//handleString(test);
+
