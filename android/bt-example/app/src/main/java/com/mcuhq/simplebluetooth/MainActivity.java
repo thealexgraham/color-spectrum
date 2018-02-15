@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v4.app.ActivityCompat;
@@ -22,6 +23,8 @@ import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.github.veritas1.verticalslidecolorpicker.VerticalSlideColorPicker;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,11 +48,21 @@ public class MainActivity extends AppCompatActivity {
     private ListView mDevicesListView;
     private CheckBox mLED1;
 
+    private VerticalSlideColorPicker mColorPicker;
+    private Button mSelectedColorButton;
+
+    private VerticalSlideColorPicker mColorPicker2;
+    private Button mSelectedColorButton2;
+
+
     private Handler mHandler; // Our main handler that will receive callback notifications
     private ConnectedThread mConnectedThread; // bluetooth background worker thread to send and receive data
     private BluetoothSocket mBTSocket = null; // bi-directional client-to-client data path
 
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // "random" unique identifier
+
+    private int mColor;
+    private int mColor2;
 
 
     // #defines for identifying shared types between calling functions
@@ -63,6 +76,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mColorPicker = (VerticalSlideColorPicker) findViewById(R.id.color_picker);
+        mSelectedColorButton = (Button) findViewById(R.id.color_button);
+
+        mColorPicker2 = (VerticalSlideColorPicker) findViewById(R.id.color_picker2);
+        mSelectedColorButton2 = (Button) findViewById(R.id.color_button2);
 
         mBluetoothStatus = (TextView)findViewById(R.id.bluetoothStatus);
         mReadBuffer = (TextView) findViewById(R.id.readBuffer);
@@ -156,6 +175,66 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+
+        mColorPicker.setColors(new int[] {Color.RED,Color.GREEN,Color.BLUE,Color.YELLOW,Color.CYAN,Color.MAGENTA});
+        mColorPicker.setOnColorChangeListener(new VerticalSlideColorPicker.OnColorChangeListener() {
+            @Override
+            public void onColorChange(int selectedColor) {
+                mColor = selectedColor;
+                mSelectedColorButton.setBackgroundColor(selectedColor);
+                String toSend = createColorString(1, selectedColor);
+                if (mConnectedThread != null) { //First check to make sure thread created
+                    mConnectedThread.write(toSend);
+                }
+            }
+        });
+
+        mColorPicker2.setColors(new int[] {Color.RED,Color.GREEN,Color.BLUE,Color.YELLOW,Color.CYAN,Color.MAGENTA});
+        mColorPicker2.setOnColorChangeListener(new VerticalSlideColorPicker.OnColorChangeListener() {
+            @Override
+            public void onColorChange(int selectedColor) {
+                mColor2 = selectedColor;
+                mSelectedColorButton2.setBackgroundColor(selectedColor);
+                String toSend = createColorString(2, selectedColor);
+                if (mConnectedThread != null) { //First check to make sure thread created
+                    mConnectedThread.write(toSend);
+                }
+            }
+        });
+        mSelectedColorButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String toSend = createColorString(1, mColor);
+                Button me = (Button) v;
+                me.setAllCaps(false);
+                me.setText(toSend);
+
+                if (mConnectedThread != null) { //First check to make sure thread created
+                    mConnectedThread.write(toSend);
+                }
+            }
+        });
+        mSelectedColorButton2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String toSend = createColorString(2, mColor2);
+                Button me = (Button) v;
+                me.setAllCaps(false);
+                me.setText(toSend);
+
+                if (mConnectedThread != null) { //First check to make sure thread created
+                    mConnectedThread.write(toSend);
+                }
+            }
+        });
+    }
+
+    private String createColorString(int lane, int color) {
+        int b = Color.blue(color);
+        int g = Color.green(color);
+        int r = Color.red(color);
+        return String.format("%d:r:%d&%d:g:%d&%d:b:%d\n",lane,r,lane,g,lane,b);
     }
 
     private void bluetoothOn(View view){

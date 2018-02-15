@@ -37,6 +37,8 @@ github: thealexgraham/midearth
 library:
   dependencies:
   - base
+  - hosc <= 0.15 && >= 0.15
+  - hosc-utils <= 0.15 && >= 0.15
   source-dirs: library
 license: MIT
 maintainer: Alex Graham

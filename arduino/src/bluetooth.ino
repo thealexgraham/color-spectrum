@@ -47,7 +47,9 @@ void setup()
     while (BTSerial.available()) {
         Serial.write(BTSerial.read());
     }
-    //analogWrite(GREENPIN, 0);
+    analogWrite(11, 100);
+    analogWrite(10, 100);
+    analogWrite(9, 100);
 }
 
 char inData[INPUT_SIZE];
