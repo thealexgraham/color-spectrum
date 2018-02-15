@@ -76,7 +76,7 @@ void loop()
 
 
 void handleCommand(char input[]) {
-
+    //ln:r:123&ln:g:343metc
     // Read each command pair
     char* command = strtok(input, "&");
     while (command != '\0')
